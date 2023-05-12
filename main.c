@@ -179,19 +179,90 @@ int main(int argc, char **argv)
             symtab = (Elf64_Sym *)(mapped + shdr[i].sh_offset);
             symtab_count = shdr[i].sh_size / sizeof(Elf64_Sym);
             symtab_str = (char *)(mapped + shdr[shdr[i].sh_link].sh_offset);
-            unsigned char symbol_type_and_binding = symtab[i].st_info;
-            unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
-            unsigned char symbol_binding = symbol_type_and_binding >> 4;
+            // unsigned char symbol_type_and_binding = symtab[i].st_info;
+            // unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
+            // unsigned char symbol_binding = symbol_type_and_binding >> 4;
             char *strtab = (char *) (mapped + shstrtab->sh_offset);
             for (int j = 0; j < symtab_count; j++) {
+                
                 unsigned char symbol_type_and_binding = symtab[j].st_info;
                 unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
                 unsigned char symbol_binding = symbol_type_and_binding >> 4;
-                printf("Nom de symbole : %s\n", symtab_str + symtab[j].st_name);
-                printf("Type de symbole : %u\n", symbol_type);
-                printf("Adresse de symbole : %lx\n", symtab[j].st_value);
-                printf("%s | %s\n", is_undefined_symbol(&symtab[j]) ? "U" : " ", strtab + symtab[j].st_name);
-                printf("\n");
+                if (symtab[j].st_value == 0 && ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4)
+                {
+                    if (symtab[j].st_shndx == SHN_UNDEF){
+                        if (symbol_type == 2 && symbol_binding == 1)
+                            printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
+                        else if ((symbol_type == 0 || symbol_type == 2) && symbol_binding == 2)
+                            printf("%c %s \n", 'w', symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 0 && symbol_binding == 1 && symtab[j].st_shndx == 26)
+                            printf("%c %s\n", 'B',symtab_str + symtab[j].st_name);
+                        else
+                            printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_UNDEF,  symtab_str + symtab[j].st_name);
+                    }
+                    else if (symbol_type == STT_FUNC){
+                        if (symbol_type == 2 && symbol_binding == 1)
+                            printf("%c %s\n", 'T',symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 2 && symbol_binding == 0)
+                            printf("%c %s\n", 't',symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 1 && symbol_binding == 1 && symtab[j].st_shndx == 26)
+                            printf("%c %s\n", 'B',symtab_str + symtab[j].st_name);
+                    }
+                    else if (symbol_type == STT_OBJECT){
+                            if (symbol_type == 1 && symbol_binding == 1 && symtab[j].st_shndx == 25)
+                            printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 1 && symbol_binding == 1 && symtab[j].st_shndx == 26)
+                            printf("%c %s\n", 'B',symtab_str + symtab[j].st_name);
+                    }
+                    else
+                        printf("%u et %u et %u %s \n", symbol_type, symbol_binding, symtab[j].st_shndx,  symtab_str + symtab[j].st_name);
+                    // else if (symtab[j].st_shndx == SHN_COMMON)
+                    //     printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_COMMON,  symtab_str + symtab[j].st_name);
+                    // else if (symtab[j].st_shndx == SHN_XINDEX)
+                    //     printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_XINDEX,  symtab_str + symtab[j].st_name);
+                    // else 
+                    //     printf("ta guaule \n");
+
+                }
+                else if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4)
+                {    
+                    // if (symtab[j].st_shndx == SHN_UNDEF)
+                    //     printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_UNDEF,  symtab_str + symtab[j].st_name);
+                    // else if (symtab[j].st_shndx == 0xFFF1)
+                    //     printf("%u et %u et %u %s \n", symbol_type, symbol_binding, 0xFFF1,  symtab_str + symtab[j].st_name);
+                    // else if (symtab[j].st_shndx == SHN_COMMON)
+                    //     printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_COMMON,  symtab_str + symtab[j].st_name);
+                    // else if (symtab[j].st_shndx == SHN_XINDEX)
+                    //     printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_XINDEX,  symtab_str + symtab[j].st_name);
+                    if (symtab[j].st_shndx == SHN_UNDEF){
+                        if (symbol_type == 2 && symbol_binding == 1)
+                            printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
+                        else if ((symbol_type == 0 || symbol_type == 2) && symbol_binding == 2)
+                            printf("%c %s \n", 'w', symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 0 && symbol_binding == 1 && symtab[j].st_shndx == 26)
+                            printf("%c %s\n", 'B',symtab_str + symtab[j].st_name);
+                        else
+                            printf("%u et %u et %u %s \n", symbol_type, symbol_binding, SHN_UNDEF,  symtab_str + symtab[j].st_name);
+                    }
+                    else if (symbol_type == STT_FUNC){
+                        if (symbol_type == 2 && symbol_binding == 1)
+                            printf("%c %s\n", 'T',symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 2 && symbol_binding == 0)
+                            printf("%c %s\n", 't',symtab_str + symtab[j].st_name);
+                        
+                    }
+                    else if (symbol_type == STT_OBJECT){
+                        if (symbol_type == 1 && symbol_binding == 1 && symtab[j].st_shndx == 25)
+                            printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
+                        else if (symbol_type == 1 && symbol_binding == 1 && symtab[j].st_shndx == 26)
+                            printf("%c %s\n", 'B',symtab_str + symtab[j].st_name);
+                        else
+                            printf("%u et %u et %u %s \n", symbol_type, symbol_binding, symtab[j].st_shndx,  symtab_str + symtab[j].st_name);
+                    }
+                    else 
+                        printf("%u et %u et %u %s \n", symbol_type, symbol_binding, symtab[j].st_shndx,  symtab_str + symtab[j].st_name);
+                    
+                }
             }
 
             break;
