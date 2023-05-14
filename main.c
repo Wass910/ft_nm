@@ -35,7 +35,7 @@ int check_arg(char *binary_path, int bits)
     int i = 0;
     FILE *fp = fopen(binary_path, "rb");
     if (!fp) {
-        fprintf(stderr, "Impossible d'ouvrir le fichier binaire %s.\n", binary_path);
+        //fprintf(stderr, "Impossible d'ouvrir le fichier binaire %s.\n", binary_path);
 		return 1;
     }
     Elf64_Ehdr elf_header;
@@ -62,12 +62,12 @@ int check_arg(char *binary_path, int bits)
     {
         if (binary_path[i] == 'o'){}
         else{
-            printf("Invalid format \n");
+            //printf("Invalid format \n");
             return 1;
         }
         if ((binary_path[i - 1] == 's' && binary_path[i - 2] == '.') || (binary_path[i - 1] == '.')){}
         else{
-            printf("Invalid format2 \n");
+            //printf("Invalid format2 \n");
             return 1;
         }
     }
@@ -348,7 +348,7 @@ int main(int argc, char **argv)
     {
         int count = 0;
         if (check_arg(argv[nb_arg], 0) == 1){
-            printf("ft_nm: %s: file format not recognized\n", argv[nb_arg]);
+            fprintf(stderr, "ft_nm: %s: file format not recognized\n", argv[nb_arg]);
         }
         else{
             int fd = open(argv[nb_arg], O_RDONLY);
