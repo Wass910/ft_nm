@@ -4,7 +4,7 @@ OBJS			= $(SRC:.c=.o)
 
 NAME			= ft_nm
 
-CFLAGS			=  -g
+CFLAGS			= -fsanitize=address -g
 
 RM				= rm -f
 

@@ -256,56 +256,19 @@ void    print_final(char **tri_tab)
     return;
 }
 
-// void tri()
-// {
-//     printf("ok\n");
-//     char *tmp = NULL;
-//     char **tri_tab = (char**)malloc(sizeof(char*) * (size_tab() + 1));
-//     int i = 0;
-//     int letter = 0;
-//     tmp = name_tab[0];
-//     int to_delete = 0;
-//     int to_fill = 0;
-//     while (i < size_tab())
-//     {
-//         printf("ok = %d\n", i);
-//         while(letter < size_tab())
-//         {
-//             if (name_tab[letter] != ""){
-//                 if (is_smaller(tmp, name_tab[letter]) == 1 ){
-//                     tmp = name_tab[letter];
-//                     to_delete = letter;
-//                 }
-//             }
-//             letter++;
-//         }
-//         //printf("tmp = %s et tab = %s\n", tmp, name_tab[to_delete]);
-//         tri_tab[i] = tmp;
-//         i++;
-//         letter = 0;
-//         name_tab[to_delete] = "";
-//         for (size_t j = 0; j < size_tab(); j++)
-//         {
-//             if (name_tab[j] != "")
-//             {
-//                 tmp = name_tab[j];
-//                 to_delete = j;
-//                 break;
-//             }
-//             to_delete = 0;
-            
-//         }
-        
-        
-        
-//     }
-//     printf("oktgbg\n");
-//     tri_tab[i] = NULL;
-//     //affichage(tri_tab);
-//     print_final(tri_tab);
-//     free(tri_tab);
-//     return ;
-// }
+void free_all()
+{
+	t_all	*temp;
+	while(g_all->next)
+	{
+		temp = g_all;
+		g_all = g_all->next;
+		free(temp);
+	}
+	free(g_all);
+    g_all = NULL;
+	return ;
+}
 
 void tri()
 {
@@ -355,6 +318,7 @@ void tri()
     //affichage(tri_tab);
     print_final(tri_tab);
     free(tri_tab);
+    free_all();
     return ;
 }
 
