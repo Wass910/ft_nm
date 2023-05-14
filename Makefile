@@ -1,10 +1,10 @@
-SRC=    main.c\
+SRC=    main.c print.c utils.c\
 
 OBJS			= $(SRC:.c=.o)
 
 NAME			= ft_nm
 
-CFLAGS			= -fsanitize=address -g
+CFLAGS			=  -g
 
 RM				= rm -f
 

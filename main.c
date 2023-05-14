@@ -1,19 +1,33 @@
 #include "ft_nm.h"
 
 char **name_tab;
+t_all *g_all = NULL;
 
-int	ft_strlen(char *s)
+void	ft_lstadd_back(t_all **alst, t_all *new)
 {
-	int	i;
+	t_all	*lst;
 
-	i = 0;
-	if (s == NULL)
-		return (6);
-	while (s[i] != '\0')
+	lst = *alst;
+	if (*alst == NULL)
+		*alst = new;
+	else
 	{
-		i++;
+		while (lst->next)
+			lst = lst->next;
+		lst->next = new;
 	}
-	return (i);
+}
+
+t_all	*fill_all(uint64_t address, char* name, char symbole, int type)
+{
+	t_all	*lst = malloc(sizeof(t_all));
+
+	lst->address = address;
+    lst->name = name;
+    lst->symbole = symbole;
+    lst->type = type;
+    lst->type = 0;
+    lst->next = NULL;
 }
 
 int check_arg(char *binary_path, int bits)
@@ -35,8 +49,8 @@ int check_arg(char *binary_path, int bits)
         elf_header.e_ident[2] != 'L' ||
         elf_header.e_ident[3] != 'F')
     {
-        printf("not elf file \n");
-        exit(1);
+        //printf("not elf file \n");
+        return (1);
     } 
     while(binary_path[i] != '\0')
     {
@@ -59,17 +73,11 @@ int check_arg(char *binary_path, int bits)
     }
     else
     {
-        printf("e_type = %u\n", elf_header.e_type);
-        printf("e_machine = %d\n", elf_header.e_machine);
-        printf("e_version = %d\n", elf_header.e_version);
-        printf("e_ehsize = %d\n", elf_header.e_ehsize);
-        
         if (elf_header.e_ident[EI_CLASS] == ELFCLASS32)
             bits = 32;
         else if (elf_header.e_ident[EI_CLASS] == ELFCLASS64) 
             bits = 64;
         else {
-            fprintf(stderr, "Binaire incompatible avec la machine actuelle.\n");
             fclose(fp);
             return 1;
         }
@@ -77,245 +85,373 @@ int check_arg(char *binary_path, int bits)
     return 0;
 }
 
-int is_undefined_symbol(Elf64_Sym *sym) {
-    unsigned char st_info = sym->st_info;
-    int type = ELF64_ST_TYPE(st_info);
-    int bind = ELF64_ST_BIND(st_info);
-    return (type == STT_NOTYPE && (bind == STB_GLOBAL || bind == STB_WEAK));
-}
-
-void tri()
-{
-    char *tmp = NULL;
-    char **tri_tab = (char**)malloc(sizeof(char*) * (1000));
-    int i = 95;
-    int letter = 95;
-    int j = 0;
-    tmp = name_tab[95];
-
-    while (i < 105)
-    {
-        while(letter < 105)
-        {
-            if (tmp[0] < name_tab[letter][0])
-                tmp = name_tab[letter];
-            letter++;
-        }
-        printf("tmp = %s\n", tmp);
-        j = 0;
-        i++;
-        letter = i;
-        tmp = name_tab[letter];
-    }
-    return ;
-}
-
-void    affichage()
+void    affichage(char **tab)
 {
     int i = 0;
 
-    while (name_tab[i] != NULL)
+    while (tab[i] != NULL)
     {
-        if (ft_strlen(name_tab[i]) > 0)
-            printf("%d = %s\n", i, name_tab[i]);
+        if (ft_strlen(tab[i]) > 0)
+            printf("%d = %s\n", i, tab[i]);
         i++;
     }
     return ;
 }
+
+void    print_list()
+{
+    while (g_all->next)
+    {
+        printf("---------------------\n");
+        printf("|g_all->addr = %016lx\n", g_all->address);
+        printf("|g_all->name = %s\n", g_all->name);
+        printf("|g_all->type = %d\n", g_all->type);
+        printf("|g_all->symbole = %c\n", g_all->symbole);
+        printf("---------------------\n");
+        g_all = g_all->next;
+    }
+    return;
+}
+char    *all_in_min(char *str)
+{
+    // if (ft_strlen(str) == 0)
+    //     return NULL;
+    int i = 0;
+    int lengh = ft_strlen(str);
+    char *tab = malloc(sizeof(char) * (ft_strlen(str) + 1));
+
+    while (str[i] != '\0') {
+        if (str[i] >= 'A' && str[i] <= 'Z')
+            tab[i] = str[i] + 32;
+        else
+            tab[i] = str[i];
+        i++;
+    }
+    tab[i] = '\0';
+    return tab;
+}
+
+int	ft_strlen_without_tiret(char *s)
+{
+	int	i;
+
+	int count = 0;
+    i = 0;
+	if (s == NULL)
+		return (0);
+	while (s[i] != '\0')
+	{
+        if (s[i] != '_')
+            count++;
+        i++;
+	}
+	return (count);
+}
+
+int is_smaller(char *tmp, char* tab_str)
+{
+    char* str_min = all_in_min(tab_str);
+    char *tmp_min = all_in_min(tmp);
+    int try = 0;
+    //printf("str = %s et tmp = %s\n", str_min, tab_str);
+    int i = 0;
+    int j = 0;
+    while(tmp_min[i] == '_')
+        i++;
+    while(str_min[j] == '_')
+        j++;
+    if (i > j)
+        try == 1;
+    if (i < j)
+        try == 2;
+    //printf("i = %d et j = %d\n\n", i, j);
+    while(tmp_min[i] && str_min[j])
+    {
+        if (tmp_min[i] == '_' && str_min[j] != '_' && i == j)
+        {
+            free(tmp_min);
+            free(str_min);
+            return 1;
+        }
+        if (tmp_min[i] != '_' && str_min[j] == '_' && i == j)
+        {
+            free(tmp_min);
+            free(str_min);
+            return 0;
+        }
+        if (tmp_min[i] < str_min[j]){
+            free(str_min);
+            free(tmp_min);
+            return 0;
+        }
+        if (tmp_min[i] > str_min[j]){
+            free(tmp_min);
+            free(str_min);
+            return 1;
+        }
+        j++;
+        i++;
+    }
+    if (ft_strlen_without_tiret(tmp_min) == ft_strlen_without_tiret(str_min))
+    {
+        if (tmp_min[0] == '_' && str_min[0] != '_')
+        {
+            free(tmp_min);
+            free(str_min);
+            return 0;
+        }
+    
+        if (tmp_min[0] != '_' && str_min[0] == '_')
+        {
+            free(tmp_min);
+            free(str_min);
+            return 1;
+        }
+    
+    }
+
+    if (ft_strlen(str_min) < ft_strlen(tmp_min))
+    {
+        free(tmp_min);
+        free(str_min);
+        return 1;
+    }
+    free(tmp_min);
+    free(str_min);
+    return 0;
+}
+
+int size_tab()
+{
+    int size_tab = 0;
+
+    while (name_tab[size_tab])
+    {
+        size_tab++;
+    }
+    return size_tab;
+}
+
+void    print_final(char **tri_tab)
+{
+    t_all *tmp = g_all;
+    int i = 0;
+    while(i< size_tab())
+    {
+        t_all *tmp = g_all;
+        while (tmp)
+        {
+            if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1)
+            {
+                if (tmp->address == 0)
+                    printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                else
+                    printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                tmp->write = 1;
+            }
+            tmp = tmp->next;
+        }
+        i++;
+    }
+    return;
+}
+
+// void tri()
+// {
+//     printf("ok\n");
+//     char *tmp = NULL;
+//     char **tri_tab = (char**)malloc(sizeof(char*) * (size_tab() + 1));
+//     int i = 0;
+//     int letter = 0;
+//     tmp = name_tab[0];
+//     int to_delete = 0;
+//     int to_fill = 0;
+//     while (i < size_tab())
+//     {
+//         printf("ok = %d\n", i);
+//         while(letter < size_tab())
+//         {
+//             if (name_tab[letter] != ""){
+//                 if (is_smaller(tmp, name_tab[letter]) == 1 ){
+//                     tmp = name_tab[letter];
+//                     to_delete = letter;
+//                 }
+//             }
+//             letter++;
+//         }
+//         //printf("tmp = %s et tab = %s\n", tmp, name_tab[to_delete]);
+//         tri_tab[i] = tmp;
+//         i++;
+//         letter = 0;
+//         name_tab[to_delete] = "";
+//         for (size_t j = 0; j < size_tab(); j++)
+//         {
+//             if (name_tab[j] != "")
+//             {
+//                 tmp = name_tab[j];
+//                 to_delete = j;
+//                 break;
+//             }
+//             to_delete = 0;
+            
+//         }
+        
+        
+        
+//     }
+//     printf("oktgbg\n");
+//     tri_tab[i] = NULL;
+//     //affichage(tri_tab);
+//     print_final(tri_tab);
+//     free(tri_tab);
+//     return ;
+// }
+
+void tri()
+{
+    //printf("ok\n");
+    char *tmp = NULL;
+    char **tri_tab = (char**)malloc(sizeof(char*) * (size_tab() + 1));
+    int i = 0;
+    int letter = 0;
+    tmp = name_tab[0];
+    int to_delete = 0;
+    int to_fill = 0;
+    while (i < size_tab())
+    {
+        //printf("ok = %d\n", i);
+        while(letter < size_tab())
+        {
+            if (name_tab[letter] != ""){
+                if (is_smaller(tmp, name_tab[letter]) == 1 ){
+                    tmp = name_tab[letter];
+                    to_delete = letter;
+                }
+            }
+            letter++;
+        }
+        //printf("tmp = %s et tab = %s\n", tmp, name_tab[to_delete]);
+        tri_tab[i] = tmp;
+        i++;
+        letter = 0;
+        name_tab[to_delete] = "";
+        for (size_t j = 0; j < size_tab(); j++)
+        {
+            if (name_tab[j] != "")
+            {
+                tmp = name_tab[j];
+                to_delete = j;
+                break;
+            }
+            to_delete = 0;
+            
+        }
+        
+        
+        
+    }
+    //printf("oktgbg\n");
+    tri_tab[i] = NULL;
+    //affichage(tri_tab);
+    print_final(tri_tab);
+    free(tri_tab);
+    return ;
+}
+
+void    free_tab()
+{
+    // int i = 0;
+
+    // while(name_tab[i] != NULL)
+    // {
+    //     free(name_tab[i]);
+    //     i++;
+    // }
+    free(name_tab);
+    return ;
+}
+
 int main(int argc, char **argv)
 {
-    if (argc == 2){
-        if (check_arg(argv[1], 0) == 1)
-            return 1;
-    }
-    else{
-        fprintf(stderr, "Usage: %s <binary>\n", argv[0]);
+    
+    if (argc < 2){
+        fprintf(stderr, "Usage: %s <binary> ... \n", argv[0]);
         return 1;
     }
-    int fd = open(argv[1], O_RDONLY);
-    if (fd < 0) {
-        printf("Impossible d'ouvrir le fichier %s\n", argv[1]);
-        return 1;
-    }
-
-    // Obtenir la taille du fichier binaire
-    off_t fsize = lseek(fd, 0, SEEK_END);
-    if (fsize < 0) {
-        printf("Erreur lors de l'obtention de la taille du fichier binaire\n");
-        close(fd);
-        return 1;
-    }
-
-    void *mapped = mmap(NULL, fsize, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (mapped == MAP_FAILED) {
-        printf("Erreur lors du mappage du fichier binaire en mémoire\n");
-        close(fd);
-        return 1;
-    }
-
-    // Obtenir l'en-tête du fichier binaire
-    Elf64_Ehdr *ehdr = (Elf64_Ehdr *) mapped;
-
-    Elf64_Shdr *shdr = (Elf64_Shdr *) (mapped + ehdr->e_shoff);
-    Elf64_Shdr *shstrtab = &shdr[ehdr->e_shstrndx];
-    char *strtab = (char *)(mapped + shstrtab->sh_offset);
-    Elf64_Sym *symtab = NULL;
-    char *symtab_str = NULL;
-    int i, symtab_count;
-    int count = 0;
-    for (i = 0; i < ehdr->e_shnum; i++) {
-        if (shdr[i].sh_type == SHT_SYMTAB) {
-            symtab = (Elf64_Sym *)(mapped + shdr[i].sh_offset);
-            symtab_count = shdr[i].sh_size / sizeof(Elf64_Sym);
-            symtab_str = (char *)(mapped + shdr[shdr[i].sh_link].sh_offset);
-            // unsigned char symbol_type_and_binding = symtab[i].st_info;
-            // unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
-            // unsigned char symbol_binding = symbol_type_and_binding >> 4;
-            char *strtab = (char *) (mapped + shstrtab->sh_offset);
-            for (int j = 0; j < symtab_count; j++) {
-                count = j;
-                // if (j == 0)
-                //     name_tab = (char**)malloc(sizeof(char*) * (symtab_count + 1));
-                unsigned char symbol_type_and_binding = symtab[j].st_info;
-                unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
-                unsigned char symbol_binding = symbol_type_and_binding >> 4;
-                if (symtab[j].st_value == 0 && ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4)
-                {
-                    if (symbol_type == 6 && symbol_binding == 2 && (symtab[j].st_shndx == 21 || symtab[j].st_shndx == 22)){}
-                    //     //printf("%c %s \n", 'W', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 6 && symbol_binding == 1 && (symtab[j].st_shndx == 21 || symtab[j].st_shndx == 22)){}
-                    //     //printf("%c %s \n", 'B', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 6 && symbol_binding == 0 && (symtab[j].st_shndx == 21 || symtab[j].st_shndx == 22)){}
-                    //     //printf("%c %s \n", 'b', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 2 && (symtab[j].st_shndx <= 17 || symtab[j].st_shndx >= 8)){}
-                    //     //printf("%c %s \n", 'W', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 1 && ((symtab[j].st_shndx >= 12 && symtab[j].st_shndx <= 17) || symtab[j].st_shndx == 2 || symtab[j].st_shndx == 1)){}
-                    //     //printf("%c %s \n", 'T', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 1 && symtab[j].st_shndx == 0){}
-                    //     //printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 0 && ((symtab[j].st_shndx <= 16 && symtab[j].st_shndx >= 14) || symtab[j].st_shndx == 10 || (symtab[j].st_shndx >= 1 && symtab[j].st_shndx <= 4))){}
-                    //     //printf("%c %s \n", 't', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 2 && (symtab[j].st_shndx >= 17 && symtab[j].st_shndx <= 27)){}
-                    //     //printf("%c %s \n", 'V', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 2 && (symtab[j].st_shndx == 0)){}
-                    //     //printf("%c %s \n", 'v', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 1 && ((symtab[j].st_shndx >= 21 && symtab[j].st_shndx <= 25) || symtab[j].st_shndx == 29)){}
-                    //     //printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 1 && (symtab[j].st_shndx <= 18 && symtab[j].st_shndx >= 16)){}
-                    //     //printf("%c %s \n", 'R', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 1 && (symtab[j].st_shndx == 0)){}
-                    //     //printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 0 && ( (symtab[j].st_shndx >= 25 && symtab[j].st_shndx <= 27) ||  symtab[j].st_shndx == 7 ||  symtab[j].st_shndx == 10 || (symtab[j].st_shndx >= 30 && symtab[j].st_shndx <= 1139) || (symtab[j].st_shndx >= 1231))){}
-                    //     //printf("%c %s \n", 'b', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 0 && ((symtab[j].st_shndx >= 19 && symtab[j].st_shndx <= 24) || (symtab[j].st_shndx >= 28 && symtab[j].st_shndx <= 30) || symtab[j].st_shndx == 1143) ){}
-                    //     //printf("%c %s \n", 'd', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 0 && (symtab[j].st_shndx == 4 || symtab[j].st_shndx == 20 || symtab[j].st_shndx == 18 || symtab[j].st_shndx == 1140)){}
-                    //     //printf("%c %s \n", 'r', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 2 && (symtab[j].st_shndx >= 25 && symtab[j].st_shndx <= 30)){}
-                    //     //printf("%c %s \n", 'W', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && (symbol_binding == 2 || symbol_binding == 1) && symtab[j].st_shndx == 24){}
-                    //     //printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
-                    else if ((symbol_type == 0 || symbol_type == 2) && symbol_binding == 2 && symtab[j].st_shndx == 0){}
-                    //     //printf("%c %s \n", 'w', symtab_str + symtab[j].st_name);
-                    else if ((symbol_type == 0 || symbol_type == 1) && symbol_binding == 1 && (symtab[j].st_shndx == 26 || symtab[j].st_shndx == 27 || symtab[j].st_shndx == 28 || symtab[j].st_shndx == 4 || symtab[j].st_shndx == 30 || symtab[j].st_shndx == 31 )){}
-                    //     //printf("%c %s \n", 'B', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 1 && (symtab[j].st_shndx == 25 || symtab[j].st_shndx == 29)){}
-                    //     //printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 1 && ((symtab[j].st_shndx >= 14 && symtab[j].st_shndx <= 16) || symtab[j].st_shndx == 2)){}
-                    //     //printf("%c %s \n", 'T', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 1 && symtab[j].st_shndx == 0){}
-                    //     //printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx == 24)){}
-                    //     //printf("%c %s \n", 'd', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx >= 29 || (symtab[j].st_shndx >= 15 && symtab[j].st_shndx <= 23 ))){}
-                    //     //printf("%c %s \n", 'r', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && ((symtab[j].st_shndx >= 17 && symtab[j].st_shndx <= 21) || symtab[j].st_shndx == 6 | symtab[j].st_shndx == 13)){}
-                    //     //printf("%c %s \n", 'r', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx == 14 || symtab[j].st_shndx == 2)){}
-                    //     //printf("%c %s \n", 't', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx == 1)){}
-                    //     //printf("%c %s \n", 'd', symtab_str + symtab[j].st_name);
-                    else
-                        printf("%u et %u et %u %s \n", symbol_type, symbol_binding, symtab[j].st_shndx,  symtab_str + symtab[j].st_name);
-
-                }
-                else if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4)
-                {    
-                    if (symbol_type == 6 && symbol_binding == 2 && (symtab[j].st_shndx == 21 || symtab[j].st_shndx == 22)){}
-                    //     //printf("%c %s \n", 'W', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 6 && symbol_binding == 1 && (symtab[j].st_shndx == 21 || symtab[j].st_shndx == 22)){}
-                    //     //printf("%c %s \n", 'B', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 6 && symbol_binding == 0 && (symtab[j].st_shndx == 21 || symtab[j].st_shndx == 22)){}
-                    //     //printf("%c %s \n", 'b', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 2 && (symtab[j].st_shndx <= 17 || symtab[j].st_shndx >= 8)){}
-                    //     //printf("%c %s \n", 'W', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 1 && ((symtab[j].st_shndx >= 12 && symtab[j].st_shndx <= 17) || symtab[j].st_shndx == 2 || symtab[j].st_shndx == 1)){}
-                    //     //printf("%c %s \n", 'T', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 1 && symtab[j].st_shndx == 0){}
-                    //     //printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 2 && symbol_binding == 0 && ((symtab[j].st_shndx <= 16 && symtab[j].st_shndx >= 14) || symtab[j].st_shndx == 10 || (symtab[j].st_shndx >= 1 && symtab[j].st_shndx <= 4))){}
-                    //     //printf("%c %s \n", 't', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 2 && (symtab[j].st_shndx >= 17 && symtab[j].st_shndx <= 27)){}
-                    //     //printf("%c %s \n", 'V', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 2 && (symtab[j].st_shndx == 0)){}
-                    //     //printf("%c %s \n", 'v', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 1 && ((symtab[j].st_shndx >= 21 && symtab[j].st_shndx <= 25) || symtab[j].st_shndx == 29)){}
-                    //     //printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 1 && (symtab[j].st_shndx <= 18 && symtab[j].st_shndx >= 16)){}
-                    //     //printf("%c %s \n", 'R', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 1 && (symtab[j].st_shndx == 0)){}
-                    //     //printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 0 && ( (symtab[j].st_shndx >= 25 && symtab[j].st_shndx <= 27) ||  symtab[j].st_shndx == 7 ||  symtab[j].st_shndx == 10 || (symtab[j].st_shndx >= 30 && symtab[j].st_shndx <= 1139) || (symtab[j].st_shndx >= 1231))){}
-                    //     //printf("%c %s \n", 'b', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 0 && ((symtab[j].st_shndx >= 19 && symtab[j].st_shndx <= 24) || (symtab[j].st_shndx >= 28 && symtab[j].st_shndx <= 30) || symtab[j].st_shndx == 1143) ){}
-                    //     //printf("%c %s \n", 'd', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 1 && symbol_binding == 0 && (symtab[j].st_shndx == 4 || symtab[j].st_shndx == 20 || symtab[j].st_shndx == 18 || symtab[j].st_shndx == 1140)){}
-                    //     //printf("%c %s \n", 'r', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 2 && (symtab[j].st_shndx >= 25 && symtab[j].st_shndx <= 30)){}
-                    //     //printf("%c %s \n", 'W', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && (symbol_binding == 2 || symbol_binding == 1) && symtab[j].st_shndx == 24){}
-                    //     //printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
-                    else if ((symbol_type == 0 || symbol_type == 2) && symbol_binding == 2 && symtab[j].st_shndx == 0){}
-                    //     //printf("%c %s \n", 'w', symtab_str + symtab[j].st_name);
-                    else if ((symbol_type == 0 || symbol_type == 1) && symbol_binding == 1 && (symtab[j].st_shndx == 26 || symtab[j].st_shndx == 27 || symtab[j].st_shndx == 28 || symtab[j].st_shndx == 4 || symtab[j].st_shndx == 30 || symtab[j].st_shndx == 31 )){}
-                    //     //printf("%c %s \n", 'B', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 1 && (symtab[j].st_shndx == 25 || symtab[j].st_shndx == 29)){}
-                    //     //printf("%c %s \n", 'D', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 1 && ((symtab[j].st_shndx >= 14 && symtab[j].st_shndx <= 16) || symtab[j].st_shndx == 2)){}
-                    //     //printf("%c %s \n", 'T', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 1 && symtab[j].st_shndx == 0){}
-                    //     //printf("%c %s \n", 'U', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx == 24)){}
-                    //     //printf("%c %s \n", 'd', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx >= 29 || (symtab[j].st_shndx >= 15 && symtab[j].st_shndx <= 23 ))){}
-                    //     //printf("%c %s \n", 'r', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && ((symtab[j].st_shndx >= 17 && symtab[j].st_shndx <= 21) || symtab[j].st_shndx == 6 | symtab[j].st_shndx == 13)){}
-                    //     //printf("%c %s \n", 'r', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx == 14 || symtab[j].st_shndx == 2)){}
-                    //     //printf("%c %s \n", 't', symtab_str + symtab[j].st_name);
-                    else if (symbol_type == 0 && symbol_binding == 0 && (symtab[j].st_shndx == 1)){}
-                    //     //printf("%c %s \n", 'd', symtab_str + symtab[j].st_name);
-                    else
-                        printf("%u et %u et %u %s \n", symbol_type, symbol_binding, symtab[j].st_shndx,  symtab_str + symtab[j].st_name);
-                    
-                }
-                // name_tab[j] = symtab_str + symtab[j].st_name;
-            }
-            
-            break;
+    int nb_arg = 1;
+    
+    while (nb_arg < argc)
+    {
+        int count = 0;
+        if (check_arg(argv[nb_arg], 0) == 1){
+            printf("ft_nm: %s: file format not recognized\n", argv[nb_arg]);
         }
+        else{
+            int fd = open(argv[nb_arg], O_RDONLY);
+            if (fd < 0) {
+                printf("Impossible d'ouvrir le fichier %s\n", argv[nb_arg]);
+                return 1;
+            }
+            void *mapped = mmap(NULL, 100000000000, PROT_READ, MAP_PRIVATE, fd, 0);
+            if (mapped == MAP_FAILED) {
+                printf("Erreur lors du mappage du fichier binaire en mémoire\n");
+                close(fd);
+                return 1;
+            }
+
+            // Obtenir l'en-tête du fichier binaire
+            Elf64_Ehdr *ehdr = (Elf64_Ehdr *) mapped;
+
+            Elf64_Shdr *shdr = (Elf64_Shdr *) (mapped + ehdr->e_shoff);
+            Elf64_Shdr *shstrtab = &shdr[ehdr->e_shstrndx];
+            char *strtab = (char *)(mapped + shstrtab->sh_offset);
+            Elf64_Sym *symtab = NULL;
+            char *symtab_str = NULL;
+            int i, symtab_count;
+            if (argc > 2)
+            {
+                printf("\n");
+                printf("%s:\n", argv[nb_arg]);
+            }
+            for (i = 0; i < ehdr->e_shnum; i++) {
+                if (shdr[i].sh_type == SHT_SYMTAB) {
+                    symtab = (Elf64_Sym *)(mapped + shdr[i].sh_offset);
+                    symtab_count = shdr[i].sh_size / sizeof(Elf64_Sym);
+                    symtab_str = (char *)(mapped + shdr[shdr[i].sh_link].sh_offset);
+                    char *strtab = (char *) (mapped + shstrtab->sh_offset);
+                    for (int j = 0; j < symtab_count; j++) {
+                        //count = j;
+                        if (j == 0)
+                            name_tab = (char**)malloc(sizeof(char*) * (symtab_count ));
+                        unsigned char symbol_type_and_binding = symtab[j].st_info;
+                        unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
+                        unsigned char symbol_binding = symbol_type_and_binding >> 4;
+                        print(j, symbol_type, symbol_binding, symtab_str, symtab);
+                        //ft_lstadd_back(&g_all, fill_all(symtab[j].st_value, symtab_str + symtab[j].st_name, symbol_type, 0));
+                        if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4){
+                            name_tab[count] = symtab_str + symtab[j].st_name;
+                            count++;
+                        }
+                    }
+                    
+                    break;
+                }
+                
+            }
+            //print_list();
+            name_tab[count] = NULL;
+            //printf("\n");
+            //affichage(name_tab);
+            tri();
+            free_tab();
+            munmap(mapped, 100000000000);
+            close(fd);
+        }
+        
+        nb_arg++;
     }
     // name_tab[count] = NULL;
     // affichage();
     // tri();
-    // if ("write@@GLIBC_2.17" < "main")
-    //     printf("okok\n");
-    // else
-    //     printf("nonono\n");
-    // Unmap le fichier binaire en mémoire
-    munmap(mapped, fsize);
-    close(fd);
-
-    printf("valide format \n");
     return 0;
 }
