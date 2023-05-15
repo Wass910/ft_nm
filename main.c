@@ -3,32 +3,7 @@
 int type = 0;
 t_all *g_all = NULL;
 
-void	ft_lstadd_back(t_all **alst, t_all *new)
-{
-	t_all	*lst;
 
-	lst = *alst;
-	if (*alst == NULL)
-		*alst = new;
-	else
-	{
-		while (lst->next)
-			lst = lst->next;
-		lst->next = new;
-	}
-}
-
-t_all	*fill_all(uint64_t address, char* name, char symbole, int type)
-{
-	t_all	*lst = malloc(sizeof(t_all));
-
-	lst->address = address;
-    lst->name = name;
-    lst->symbole = symbole;
-    lst->type = type;
-    lst->type = 0;
-    lst->next = NULL;
-}
 
 int check_arg(char *binary_path, int bits)
 {
@@ -106,258 +81,60 @@ void    print_list()
     }
     return;
 }
-char    *all_in_min(char *str)
+
+int    option(char *str, int argc, int nb_arg)
 {
-    int i = 0;
-    int lengh = ft_strlen(str);
-    char *tab = malloc(sizeof(char) * (ft_strlen(str) + 1));
-
-    while (str[i] != '\0') {
-        if (str[i] >= 'A' && str[i] <= 'Z')
-            tab[i] = str[i] + 32;
-        else
-            tab[i] = str[i];
-        i++;
-    }
-    tab[i] = '\0';
-    return tab;
-}
-
-int	ft_strlen_without_tiret(char *s)
-{
-	int	i;
-
-	int count = 0;
-    i = 0;
-	if (s == NULL)
-		return (0);
-	while (s[i] != '\0')
-	{
-        if (s[i] != '_')
-            count++;
-        i++;
-	}
-	return (count);
-}
-
-int is_smaller(char *tmp, char* tab_str)
-{
-    char* str_min = all_in_min(tab_str);
-    char *tmp_min = all_in_min(tmp);
-    int i = 0;
-    int j = 0;
-
-    while(tmp_min[i] == '_')
-        i++;
-    while(str_min[j] == '_')
-        j++;
-
-    while(tmp_min[i] && str_min[j])
+    if (ft_strncmp("-r", str, ft_strlen("-r")) == 0 && ft_strlen(str) == 2)
     {
-        if (tmp_min[i] == '_' && str_min[j] != '_' && i == j)
+        type = TYPE_R;
+        nb_arg++;
+        if (argc == 2)
         {
-            free(tmp_min);
-            free(str_min);
-            return 1;
+            printf("ft_nm: 'a.out': No such file\n");
+            return (-1);
         }
-        if (tmp_min[i] != '_' && str_min[j] == '_' && i == j)
-        {
-            free(tmp_min);
-            free(str_min);
-            return 0;
-        }
-        if (tmp_min[i] < str_min[j]){
-            free(str_min);
-            free(tmp_min);
-            return 0;
-        }
-        if (tmp_min[i] > str_min[j]){
-            free(tmp_min);
-            free(str_min);
-            return 1;
-        }
-        j++;
-        i++;
     }
-    if (ft_strlen_without_tiret(tmp_min) == ft_strlen_without_tiret(str_min))
+    else if (ft_strncmp("-a", str, ft_strlen("-a")) == 0 && ft_strlen(str) == 2)
     {
-        if (tmp_min[0] == '_' && str_min[0] != '_')
+        type = TYPE_A;
+        nb_arg++;
+        if (argc == 2)
         {
-            free(tmp_min);
-            free(str_min);
-            return 0;
-        }
-    
-        if (tmp_min[0] != '_' && str_min[0] == '_')
-        {
-            free(tmp_min);
-            free(str_min);
-            return 1;
+            printf("ft_nm: 'a.out': No such file\n");
+            return (-1);
         }
     }
-    if (ft_strlen(str_min) < ft_strlen(tmp_min))
+    else if (ft_strncmp("-p", str, ft_strlen("-p")) == 0 && ft_strlen(str) == 2)
     {
-        free(tmp_min);
-        free(str_min);
-        return 1;
-    }
-    free(tmp_min);
-    free(str_min);
-    return 0;
-}
-
-int size_tab(char **name_tab)
-{
-    int size_tab = 0;
-
-    while (name_tab[size_tab])
-    {
-        size_tab++;
-    }
-    return size_tab;
-}
-
-void    print_final_with_r(char **tri_tab)
-{
-    t_all *tmp = g_all;
-    int i = size_tab(tri_tab) - 1;
-    while(i > 0)
-    {
-        t_all *tmp = g_all;
-        while (tmp)
+        type = TYPE_P;
+        nb_arg++;
+        if (argc == 2)
         {
-            if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1)
-            {
-                if (tmp->address == 0)
-                    printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
-                else
-                    printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
-                tmp->write = 1;
-            }
-            tmp = tmp->next;
-        }
-        i--;
-    }
-    return;
-}
-
-void    print_final(char **tri_tab)
-{
-    t_all *tmp = g_all;
-    int i = 0;
-    while(i< size_tab(tri_tab))
-    {
-        t_all *tmp = g_all;
-        while (tmp)
-        {
-            if (type == TYPE_U)
-            {
-                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1 && (tmp->symbole == 'U' || tmp->symbole == 'v' || tmp->symbole == 'w'))
-                {
-                    if (tmp->address == 0)
-                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
-                    else
-                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
-                    tmp->write = 1;
-                }
-            }
-            if (type == TYPE_G)
-            {
-                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1 && (tmp->symbole >= 'A' && tmp->symbole <= 'Z'))
-                {
-                    if (tmp->address == 0)
-                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
-                    else
-                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
-                    tmp->write = 1;
-                }
-            }
-            else
-            {
-                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1)
-                {
-                    if (tmp->address == 0)
-                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
-                    else
-                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
-                    tmp->write = 1;
-                }
-            }
-            tmp = tmp->next;
-        }
-        i++;
-    }
-    return;
-}
-
-void free_all()
-{
-	t_all	*temp;
-	while(g_all->next)
-	{
-		temp = g_all;
-		g_all = g_all->next;
-		free(temp);
-	}
-	free(g_all);
-    g_all = NULL;
-	return ;
-}
-
-void tri(char **name_tab)
-{
-    //printf("ok\n");
-    if (type == TYPE_P)
-        print_final(name_tab);
-    char *tmp = NULL;
-    char **tri_tab = (char**)malloc(sizeof(char*) * (size_tab(name_tab) + 1));
-    int i = 0;
-    int letter = 0;
-    tmp = name_tab[0];
-    int to_delete = 0;
-    int to_fill = 0;
-    while (i < size_tab(name_tab))
-    {
-        while(letter < size_tab(name_tab))
-        {
-            if (name_tab[letter] != ""){
-                if (is_smaller(tmp, name_tab[letter]) == 1 ){
-                    tmp = name_tab[letter];
-                    to_delete = letter;
-                }
-            }
-            letter++;
-        }
-        //printf("tmp = %s et tab = %s\n", tmp, name_tab[to_delete]);
-        tri_tab[i] = tmp;
-        i++;
-        letter = 0;
-        name_tab[to_delete] = "";
-        for (size_t j = 0; j < size_tab(name_tab); j++)
-        {
-            if (name_tab[j] != "")
-            {
-                tmp = name_tab[j];
-                to_delete = j;
-                break;
-            }
-            to_delete = 0;
+            printf("ft_nm: 'a.out': No such file\n");
+            return (-1);
         }
     }
-    tri_tab[i] = NULL;
-    if (type == TYPE_R)
-        print_final_with_r(tri_tab);
-    else
-        print_final(tri_tab);
-    free(tri_tab);
-    free_all();
-    return ;
-}
-
-void    free_tab(char **tab)
-{
-    free(tab);
-    return ;
+    else if (ft_strncmp("-u", str, ft_strlen("-u")) == 0 && ft_strlen(str) == 2)
+    {
+        type = TYPE_U;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (-1);
+        }
+    }
+    else if (ft_strncmp("-g", str, ft_strlen("-g")) == 0 && ft_strlen(str) == 2)
+    {
+        type = TYPE_G;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (-1);
+        }
+    }
+    return nb_arg;
 }
 
 int main(int argc, char **argv)
@@ -368,58 +145,9 @@ int main(int argc, char **argv)
         return 1;
     }
     int nb_arg = 1;
-
-    if (ft_strncmp("-r", argv[1], ft_strlen("-r")) == 0 && ft_strlen(argv[1]) == 2)
-    {
-        type = TYPE_R;
-        nb_arg++;
-        if (argc == 2)
-        {
-            printf("ft_nm: 'a.out': No such file\n");
-            return (1);
-        }
-    }
-    if (ft_strncmp("-a", argv[1], ft_strlen("-a")) == 0 && ft_strlen(argv[1]) == 2)
-    {
-        type = TYPE_A;
-        nb_arg++;
-        if (argc == 2)
-        {
-            printf("ft_nm: 'a.out': No such file\n");
-            return (1);
-        }
-    }
-    if (ft_strncmp("-p", argv[1], ft_strlen("-p")) == 0 && ft_strlen(argv[1]) == 2)
-    {
-        type = TYPE_P;
-        nb_arg++;
-        if (argc == 2)
-        {
-            printf("ft_nm: 'a.out': No such file\n");
-            return (1);
-        }
-    }
-    if (ft_strncmp("-u", argv[1], ft_strlen("-u")) == 0 && ft_strlen(argv[1]) == 2)
-    {
-        type = TYPE_U;
-        nb_arg++;
-        if (argc == 2)
-        {
-            printf("ft_nm: 'a.out': No such file\n");
-            return (1);
-        }
-    }
-    if (ft_strncmp("-g", argv[1], ft_strlen("-g")) == 0 && ft_strlen(argv[1]) == 2)
-    {
-        type = TYPE_G;
-        nb_arg++;
-        if (argc == 2)
-        {
-            printf("ft_nm: 'a.out': No such file\n");
-            return (1);
-        }
-    }
-    
+    nb_arg = option(argv[1], argc, nb_arg);
+    if (nb_arg == -1)
+        return 1;
     
     while (nb_arg < argc)
     {
@@ -441,9 +169,7 @@ int main(int argc, char **argv)
                 return 1;
             }
 
-            // Obtenir l'en-tête du fichier binaire
             Elf64_Ehdr *ehdr = (Elf64_Ehdr *) mapped;
-
             Elf64_Shdr *shdr = (Elf64_Shdr *) (mapped + ehdr->e_shoff);
             Elf64_Shdr *shstrtab = &shdr[ehdr->e_shstrndx];
             char *strtab = (char *)(mapped + shstrtab->sh_offset);
@@ -467,7 +193,7 @@ int main(int argc, char **argv)
                         unsigned char symbol_type_and_binding = symtab[j].st_info;
                         unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
                         unsigned char symbol_binding = symbol_type_and_binding >> 4;
-                        print(j, symbol_type, symbol_binding, symtab_str, symtab, type);
+                        add_symbol(j, symbol_type, symbol_binding, symtab_str, symtab, type);
                         //ft_lstadd_back(&g_all, fill_all(symtab[j].st_value, symtab_str + symtab[j].st_name, symbol_type, 0));
                         if (type == TYPE_A)
                         {
@@ -488,20 +214,13 @@ int main(int argc, char **argv)
                 }
                 
             }
-            //print_list();
             name_tab[count] = NULL;
-            //printf("\n");
-            //affichage(name_tab);
-            tri(name_tab);
+            tri(name_tab, type);
             free_tab(name_tab);
             munmap(mapped, 100000000000);
             close(fd);
         }
-        
         nb_arg++;
     }
-    // name_tab[count] = NULL;
-    // affichage();
-    // tri();
     return 0;
 }

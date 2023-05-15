@@ -24,12 +24,20 @@ typedef struct s_all
     struct  s_all   *next;
 }               t_all;
 
-void    print(int j, unsigned char symbol_type, unsigned char symbol_binding, char *symtab_str, Elf64_Sym *symtab, int type);
+void    add_symbol(int j, unsigned char symbol_type, unsigned char symbol_binding, char *symtab_str, Elf64_Sym *symtab, int type);
 int     ft_strlen(char *s);
-int     is_undefined_symbol(Elf64_Sym *sym);
 void	ft_lstadd_back(t_all **alst, t_all *new);
 t_all	*fill_all(uint64_t address, char* name, char symbole, int type);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
+void    print_final_with_r(char **tri_tab);
+void    print_final(char **tri_tab, int type);
+int	    ft_strlen_without_tiret(char *s);
+char    *all_in_min(char *str);
+int     is_smaller(char *tmp, char* tab_str);
+void    tri(char **name_tab, int type);
+void    free_tab(char **tab);
+void    free_all();
+int     size_tab(char **name_tab);
 
 extern  t_all *g_all;
 #endif

@@ -1,4 +1,4 @@
-SRC=    main.c print.c utils.c\
+SRC=    main.c print.c utils.c sort.c\
 
 OBJS			= $(SRC:.c=.o)
 

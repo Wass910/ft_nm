@@ -1,6 +1,6 @@
 #include "ft_nm.h"
 
-void    print(int j, unsigned char symbol_type, unsigned char symbol_binding, char *symtab_str, Elf64_Sym *symtab, int type)
+void    add_symbol(int j, unsigned char symbol_type, unsigned char symbol_binding, char *symtab_str, Elf64_Sym *symtab, int type)
 {
     if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4)
     {    
@@ -142,4 +142,77 @@ void    print(int j, unsigned char symbol_type, unsigned char symbol_binding, ch
         ft_lstadd_back(&g_all, fill_all(symtab[j].st_value, symtab_str + symtab[j].st_name, 'a', 0));
     }
     return ;
+}
+
+void    print_final_with_r(char **tri_tab)
+{
+    t_all *tmp = g_all;
+    int i = size_tab(tri_tab) - 1;
+    while(i > 0)
+    {
+        t_all *tmp = g_all;
+        while (tmp)
+        {
+            if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1)
+            {
+                if (tmp->address == 0)
+                    printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                else
+                    printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                tmp->write = 1;
+            }
+            tmp = tmp->next;
+        }
+        i--;
+    }
+    return;
+}
+
+void    print_final(char **tri_tab, int type)
+{
+    t_all *tmp = g_all;
+    int i = 0;
+    while(i< size_tab(tri_tab))
+    {
+        t_all *tmp = g_all;
+        while (tmp)
+        {
+            if (type == TYPE_U)
+            {
+                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1 && (tmp->symbole == 'U' || tmp->symbole == 'v' || tmp->symbole == 'w'))
+                {
+                    if (tmp->address == 0)
+                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                    else
+                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                    tmp->write = 1;
+                }
+            }
+            else if (type == TYPE_G)
+            {
+                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1 && (tmp->symbole >= 'A' && tmp->symbole <= 'Z'))
+                {
+                    if (tmp->address == 0)
+                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                    else
+                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                    tmp->write = 1;
+                }
+            }
+            else
+            {
+                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1)
+                {
+                    if (tmp->address == 0)
+                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                    else
+                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                    tmp->write = 1;
+                }
+            }
+            tmp = tmp->next;
+        }
+        i++;
+    }
+    return;
 }

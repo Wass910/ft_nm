@@ -14,13 +14,6 @@ int	ft_strlen(char *s)
 	return (i);
 }
 
-int is_undefined_symbol(Elf64_Sym *sym) {
-    unsigned char st_info = sym->st_info;
-    int type = ELF64_ST_TYPE(st_info);
-    int bind = ELF64_ST_BIND(st_info);
-    return (type == STT_NOTYPE && (bind == STB_GLOBAL || bind == STB_WEAK));
-}
-
 int		ft_strncmp(const char *s1, const char *s2, size_t n)
 {
 	if (n <= 0)
@@ -32,4 +25,80 @@ int		ft_strncmp(const char *s1, const char *s2, size_t n)
 		n--;
 	}
 	return ((unsigned char)*s1 - (unsigned char)*s2);
+}
+
+void	ft_lstadd_back(t_all **alst, t_all *new)
+{
+	t_all	*lst;
+
+	lst = *alst;
+	if (*alst == NULL)
+		*alst = new;
+	else
+	{
+		while (lst->next)
+			lst = lst->next;
+		lst->next = new;
+	}
+}
+
+t_all	*fill_all(uint64_t address, char* name, char symbole, int type)
+{
+	t_all	*lst = malloc(sizeof(t_all));
+
+	lst->address = address;
+    lst->name = name;
+    lst->symbole = symbole;
+    lst->type = type;
+    lst->type = 0;
+    lst->next = NULL;
+}
+
+int	ft_strlen_without_tiret(char *s)
+{
+	int	i;
+
+	int count = 0;
+    i = 0;
+	if (s == NULL)
+		return (0);
+	while (s[i] != '\0')
+	{
+        if (s[i] != '_')
+            count++;
+        i++;
+	}
+	return (count);
+}
+
+int size_tab(char **name_tab)
+{
+    int size_tab = 0;
+
+    while (name_tab[size_tab])
+    {
+        size_tab++;
+    }
+    return size_tab;
+}
+
+
+void free_all()
+{
+	t_all	*temp;
+	while(g_all->next)
+	{
+		temp = g_all;
+		g_all = g_all->next;
+		free(temp);
+	}
+	free(g_all);
+    g_all = NULL;
+	return ;
+}
+
+void    free_tab(char **tab)
+{
+    free(tab);
+    return ;
 }
