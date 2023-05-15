@@ -1,6 +1,6 @@
 #include "ft_nm.h"
 
-char **name_tab;
+int type = 0;
 t_all *g_all = NULL;
 
 void	ft_lstadd_back(t_all **alst, t_all *new)
@@ -35,13 +35,11 @@ int check_arg(char *binary_path, int bits)
     int i = 0;
     FILE *fp = fopen(binary_path, "rb");
     if (!fp) {
-        //fprintf(stderr, "Impossible d'ouvrir le fichier binaire %s.\n", binary_path);
 		return 1;
     }
     Elf64_Ehdr elf_header;
     
     if (fread(&elf_header, sizeof(elf_header), 1, fp) != 1) {
-        //fprintf(stderr, "Erreur de lecture de l'en-tête ELF.\n");
         bits = 1;
     }
     if (elf_header.e_ident[0] != 0x7f ||
@@ -49,7 +47,6 @@ int check_arg(char *binary_path, int bits)
         elf_header.e_ident[2] != 'L' ||
         elf_header.e_ident[3] != 'F')
     {
-        //printf("not elf file \n");
         return (1);
     } 
     while(binary_path[i] != '\0')
@@ -57,19 +54,16 @@ int check_arg(char *binary_path, int bits)
         i++;
     }
     i--;
-    //printf("str = %c\n", binary_path[i]);
+
     if (ft_strlen(binary_path) > 3 && bits == 1)
     {
         if (binary_path[i] == 'o'){}
-        else{
-            //printf("Invalid format \n");
+        else
             return 1;
-        }
         if ((binary_path[i - 1] == 's' && binary_path[i - 2] == '.') || (binary_path[i - 1] == '.')){}
-        else{
-            //printf("Invalid format2 \n");
+        else
             return 1;
-        }
+        
     }
     else
     {
@@ -114,8 +108,6 @@ void    print_list()
 }
 char    *all_in_min(char *str)
 {
-    // if (ft_strlen(str) == 0)
-    //     return NULL;
     int i = 0;
     int lengh = ft_strlen(str);
     char *tab = malloc(sizeof(char) * (ft_strlen(str) + 1));
@@ -152,19 +144,14 @@ int is_smaller(char *tmp, char* tab_str)
 {
     char* str_min = all_in_min(tab_str);
     char *tmp_min = all_in_min(tmp);
-    int try = 0;
-    //printf("str = %s et tmp = %s\n", str_min, tab_str);
     int i = 0;
     int j = 0;
+
     while(tmp_min[i] == '_')
         i++;
     while(str_min[j] == '_')
         j++;
-    if (i > j)
-        try == 1;
-    if (i < j)
-        try == 2;
-    //printf("i = %d et j = %d\n\n", i, j);
+
     while(tmp_min[i] && str_min[j])
     {
         if (tmp_min[i] == '_' && str_min[j] != '_' && i == j)
@@ -207,9 +194,7 @@ int is_smaller(char *tmp, char* tab_str)
             free(str_min);
             return 1;
         }
-    
     }
-
     if (ft_strlen(str_min) < ft_strlen(tmp_min))
     {
         free(tmp_min);
@@ -221,7 +206,7 @@ int is_smaller(char *tmp, char* tab_str)
     return 0;
 }
 
-int size_tab()
+int size_tab(char **name_tab)
 {
     int size_tab = 0;
 
@@ -232,11 +217,11 @@ int size_tab()
     return size_tab;
 }
 
-void    print_final(char **tri_tab)
+void    print_final_with_r(char **tri_tab)
 {
     t_all *tmp = g_all;
-    int i = 0;
-    while(i< size_tab())
+    int i = size_tab(tri_tab) - 1;
+    while(i > 0)
     {
         t_all *tmp = g_all;
         while (tmp)
@@ -248,6 +233,55 @@ void    print_final(char **tri_tab)
                 else
                     printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
                 tmp->write = 1;
+            }
+            tmp = tmp->next;
+        }
+        i--;
+    }
+    return;
+}
+
+void    print_final(char **tri_tab)
+{
+    t_all *tmp = g_all;
+    int i = 0;
+    while(i< size_tab(tri_tab))
+    {
+        t_all *tmp = g_all;
+        while (tmp)
+        {
+            if (type == TYPE_U)
+            {
+                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1 && (tmp->symbole == 'U' || tmp->symbole == 'v' || tmp->symbole == 'w'))
+                {
+                    if (tmp->address == 0)
+                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                    else
+                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                    tmp->write = 1;
+                }
+            }
+            if (type == TYPE_G)
+            {
+                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1 && (tmp->symbole >= 'A' && tmp->symbole <= 'Z'))
+                {
+                    if (tmp->address == 0)
+                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                    else
+                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                    tmp->write = 1;
+                }
+            }
+            else
+            {
+                if ((ft_strlen(tri_tab[i]) == ft_strlen(tmp->name)) && ft_strncmp(tri_tab[i], tmp->name, ft_strlen(tri_tab[i])) == 0 && tmp->write != 1)
+                {
+                    if (tmp->address == 0)
+                        printf("%16c %c %s\n", ' ', tmp->symbole, tmp->name);
+                    else
+                        printf("%016lx %c %s\n", tmp->address, tmp->symbole, tmp->name);
+                    tmp->write = 1;
+                }
             }
             tmp = tmp->next;
         }
@@ -270,20 +304,21 @@ void free_all()
 	return ;
 }
 
-void tri()
+void tri(char **name_tab)
 {
     //printf("ok\n");
+    if (type == TYPE_P)
+        print_final(name_tab);
     char *tmp = NULL;
-    char **tri_tab = (char**)malloc(sizeof(char*) * (size_tab() + 1));
+    char **tri_tab = (char**)malloc(sizeof(char*) * (size_tab(name_tab) + 1));
     int i = 0;
     int letter = 0;
     tmp = name_tab[0];
     int to_delete = 0;
     int to_fill = 0;
-    while (i < size_tab())
+    while (i < size_tab(name_tab))
     {
-        //printf("ok = %d\n", i);
-        while(letter < size_tab())
+        while(letter < size_tab(name_tab))
         {
             if (name_tab[letter] != ""){
                 if (is_smaller(tmp, name_tab[letter]) == 1 ){
@@ -298,7 +333,7 @@ void tri()
         i++;
         letter = 0;
         name_tab[to_delete] = "";
-        for (size_t j = 0; j < size_tab(); j++)
+        for (size_t j = 0; j < size_tab(name_tab); j++)
         {
             if (name_tab[j] != "")
             {
@@ -307,31 +342,21 @@ void tri()
                 break;
             }
             to_delete = 0;
-            
         }
-        
-        
-        
     }
-    //printf("oktgbg\n");
     tri_tab[i] = NULL;
-    //affichage(tri_tab);
-    print_final(tri_tab);
+    if (type == TYPE_R)
+        print_final_with_r(tri_tab);
+    else
+        print_final(tri_tab);
     free(tri_tab);
     free_all();
     return ;
 }
 
-void    free_tab()
+void    free_tab(char **tab)
 {
-    // int i = 0;
-
-    // while(name_tab[i] != NULL)
-    // {
-    //     free(name_tab[i]);
-    //     i++;
-    // }
-    free(name_tab);
+    free(tab);
     return ;
 }
 
@@ -343,9 +368,62 @@ int main(int argc, char **argv)
         return 1;
     }
     int nb_arg = 1;
+
+    if (ft_strncmp("-r", argv[1], ft_strlen("-r")) == 0 && ft_strlen(argv[1]) == 2)
+    {
+        type = TYPE_R;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (1);
+        }
+    }
+    if (ft_strncmp("-a", argv[1], ft_strlen("-a")) == 0 && ft_strlen(argv[1]) == 2)
+    {
+        type = TYPE_A;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (1);
+        }
+    }
+    if (ft_strncmp("-p", argv[1], ft_strlen("-p")) == 0 && ft_strlen(argv[1]) == 2)
+    {
+        type = TYPE_P;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (1);
+        }
+    }
+    if (ft_strncmp("-u", argv[1], ft_strlen("-u")) == 0 && ft_strlen(argv[1]) == 2)
+    {
+        type = TYPE_U;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (1);
+        }
+    }
+    if (ft_strncmp("-g", argv[1], ft_strlen("-g")) == 0 && ft_strlen(argv[1]) == 2)
+    {
+        type = TYPE_G;
+        nb_arg++;
+        if (argc == 2)
+        {
+            printf("ft_nm: 'a.out': No such file\n");
+            return (1);
+        }
+    }
+    
     
     while (nb_arg < argc)
     {
+        char **name_tab = NULL;
         int count = 0;
         if (check_arg(argv[nb_arg], 0) == 1){
             fprintf(stderr, "ft_nm: %s: file format not recognized\n", argv[nb_arg]);
@@ -372,7 +450,7 @@ int main(int argc, char **argv)
             Elf64_Sym *symtab = NULL;
             char *symtab_str = NULL;
             int i, symtab_count;
-            if (argc > 2)
+            if ((argc > 2 && type == 0) || (argc > 3 && type > 0))
             {
                 printf("\n");
                 printf("%s:\n", argv[nb_arg]);
@@ -384,17 +462,25 @@ int main(int argc, char **argv)
                     symtab_str = (char *)(mapped + shdr[shdr[i].sh_link].sh_offset);
                     char *strtab = (char *) (mapped + shstrtab->sh_offset);
                     for (int j = 0; j < symtab_count; j++) {
-                        //count = j;
                         if (j == 0)
                             name_tab = (char**)malloc(sizeof(char*) * (symtab_count ));
                         unsigned char symbol_type_and_binding = symtab[j].st_info;
                         unsigned char symbol_type = symbol_type_and_binding & 0x0F; // les 4 bits de poids faible contiennent le type
                         unsigned char symbol_binding = symbol_type_and_binding >> 4;
-                        print(j, symbol_type, symbol_binding, symtab_str, symtab);
+                        print(j, symbol_type, symbol_binding, symtab_str, symtab, type);
                         //ft_lstadd_back(&g_all, fill_all(symtab[j].st_value, symtab_str + symtab[j].st_name, symbol_type, 0));
-                        if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4){
-                            name_tab[count] = symtab_str + symtab[j].st_name;
-                            count++;
+                        if (type == TYPE_A)
+                        {
+                            if (ft_strlen(symtab_str + symtab[j].st_name) > 0 ){
+                                name_tab[count] = symtab_str + symtab[j].st_name;
+                                count++;
+                            }
+                        }
+                        else{
+                            if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4){
+                                name_tab[count] = symtab_str + symtab[j].st_name;
+                                count++;
+                            }
                         }
                     }
                     
@@ -406,8 +492,8 @@ int main(int argc, char **argv)
             name_tab[count] = NULL;
             //printf("\n");
             //affichage(name_tab);
-            tri();
-            free_tab();
+            tri(name_tab);
+            free_tab(name_tab);
             munmap(mapped, 100000000000);
             close(fd);
         }

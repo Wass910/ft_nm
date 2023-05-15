@@ -1,6 +1,6 @@
 #include "ft_nm.h"
 
-void    print(int j, unsigned char symbol_type, unsigned char symbol_binding, char *symtab_str, Elf64_Sym *symtab)
+void    print(int j, unsigned char symbol_type, unsigned char symbol_binding, char *symtab_str, Elf64_Sym *symtab, int type)
 {
     if (ft_strlen(symtab_str + symtab[j].st_name) > 0 && symbol_type != 4)
     {    
@@ -136,6 +136,10 @@ void    print(int j, unsigned char symbol_type, unsigned char symbol_binding, ch
         }
         //else
             // printf("%u et %u et %u %s \n", symbol_type, symbol_binding, symtab[j].st_shndx,  symtab_str + symtab[j].st_name);
+    }
+    if (type == TYPE_A && symbol_type == 4)
+    {
+        ft_lstadd_back(&g_all, fill_all(symtab[j].st_value, symtab_str + symtab[j].st_name, 'a', 0));
     }
     return ;
 }
